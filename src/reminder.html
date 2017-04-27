@@ -1,0 +1,83 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="./wrappers/datejs.html">
+<link rel="import" href="./shared-styles.html">
+
+
+<dom-module id="reminder-item">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      .view {
+        padding: 10px;
+      }
+      .view > .title {
+        font-size: 1em;
+        color: var(--app-secondary-color);
+      }
+      .view > .description {
+        font-size: 0.9em;
+        color: var(--app-subtitle-color);
+      }
+      .view > .date {
+        font-size: 0.9em;
+        color: var(--app-subtitle-color);
+      }
+      .container > .actions {
+        opacity: 0.1;
+      }
+      .container:hover > .actions {
+        opacity: 1;
+      }
+    </style>
+    <div class="container layout horizontal">
+      <div class="actions layout vertical">
+        <paper-icon-button icon="my-icons:mode-edit"></paper-icon-button>
+        <paper-icon-button icon="my-icons:delete"></paper-icon-button>
+      </div>
+      <div class="view layout vertical" hidden$=[[isEditing]]>
+        <span class="title">{{item.title}}</span>
+        <span class="date">{{dateString}}</span>
+        <span class="description">{{item.description}}</span>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class ReminderItem extends Polymer.Element {
+      static get is() { return 'reminder-item'; }
+      static get properties() {
+        return {
+          isEditing: Boolean,
+          item: {
+            title: String,
+            description: String,
+            date: Date
+          },
+          dateString: {
+            type: String,
+            computed: 'formatDate(item.date, "dd.MM.yyyy@HH:mm")',
+          }
+        }
+      }
+      formatDate(date, format) {
+        if (!date) {
+          return undefined;
+        }
+        return date.toString(format)
+      }
+    }
+
+    window.customElements.define(ReminderItem.is, ReminderItem);
+  </script>
+</dom-module>

@@ -1,0 +1,67 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="./wrappers/datejs.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="./reminder.html">
+
+
+<dom-module id="reminders-section">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+    </style>
+
+    <div class="card">
+      <h1>Reminders</h1>
+      <paper-input label="Remind me"></paper-input>
+      <div class="layout vertical">
+        <template is="dom-repeat" items="{{items}}">
+          <reminder-item item={{item}}></reminder-item>
+        </template>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class ReminderSection extends Polymer.Element {
+      static get is() { return 'reminders-section'; }
+      static get properties() {
+        return {
+          items: {
+            type: Array,
+            value: function () {
+              return [
+                {
+                  title: 'Create your first Reminder',
+                  description: 'Start typing a new thing to remember in the input above',
+                  date: new Date()
+                },
+                {
+                  title: 'Update this reminder',
+                  description: 'Press the pencil icon to the left to edit',
+                  date: new Date().add(5).minutes()
+                },
+                {
+                  title: 'Delete this reminder',
+                  description: 'Press the bin icon to the left to delete',
+                  date: new Date().add(8).minutes()
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+
+    window.customElements.define(ReminderSection.is, ReminderSection);
+  </script>
+</dom-module>
