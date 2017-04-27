@@ -19,11 +19,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="my-icons.html">
 <link rel="import" href="./wrappers/datejs.html">
 <link rel="import" href="./shared-styles.html">
-<!-- this.notifySplices('items', [
-  { index: 1, removed: [{name: 'Todd'}], addedCount: 1, obect: this.items, type: 'splice' },
-  { index: 3, removed: [], addedCount: 1, object: this.items, type: 'splice'}
-]); -->
 
+<!--
+
+Reminder component
+
+Attributes:
+  - editing: Boolean, if set switches component into editing mode
+
+Important properties:
+  - item: { title, description?, date}, reminder information binding
+
+Events
+  - save[item], fired when item is to be saved
+  - remove[item], fired when item is to be removed
+
+-->
 <dom-module id="reminder-item">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
@@ -53,32 +64,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <div class="container layout horizontal">
+     <!-- actions, shown for existing reminders only -->
       <template is="dom-if" if="[[!item.isNew]]">
-        <div class="actions layout vertical">
+        <div class="actions layout vertical" id="actions-view">
           <template is="dom-if" if="[[!editing]]">
-            <paper-icon-button icon="my-icons:mode-edit" on-tap="edit"></paper-icon-button>
+            <paper-icon-button icon="my-icons:mode-edit" id="action-edit" on-tap="edit"></paper-icon-button>
           </template>
-          <paper-icon-button icon="my-icons:delete" on-tap="remove"></paper-icon-button>
+          <paper-icon-button icon="my-icons:delete" id="action-remove" on-tap="remove"></paper-icon-button>
         </div>
       </template>
+      <!-- readonly reminder view -->
       <template is="dom-if" if="[[!editing]]">
         <div class="view layout vertical" id="view-form">
-          <span class="title">{{item.title}}</span>
-          <span class="date">{{dateString}}</span>
-          <span class="description">{{item.description}}</span>
+          <span class="title" id="view-form-title">{{item.title}}</span>
+          <span class="date" id="view-form-date">{{dateString}}</span>
+          <span class="description" id="view-form-description">{{item.description}}</span>
         </div>
       </template>
+      <!-- reminder edit/create form -->
       <template is="dom-if" if="[[editing]]">
         <div class="view layout vertical flex" id="edit-form">
+
           <paper-input-container id="title">
             <label>Remind me</label>
             <input is="iron-input" maxlength="140" minlength="1" bind-value={{item.title}}>
             <paper-input-error>Please set the reminder title but no more than 140 chars</paper-input-error>
             <paper-input-char-counter></paper-input-char-counter>
           </paper-input-container>
+
           <paper-input label="when" on-tap="openDialog" value="[[dateString]]" readOnly>
             <iron-icon icon="my-icons:date" prefix></iron-icon>
           </paper-input>
+
           <paper-dialog
             id="dialog" class="paper-date-picker-dialog"
             on-iron-overlay-closed="dismissDialog"
@@ -89,8 +106,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <paper-button dialog-confirm>OK</paper-button>
             </div>
           </paper-dialog>
+
           <paper-textarea label="Additional info" value={{item.description}}></paper-textarea>
+
           <paper-button raised on-tap="save" disabled$="[[!itemIsValid]]" id="item-save-button">[[itemSaveAction]]</paper-button>
+
         </div>
       </template>
     </div>
@@ -122,6 +142,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Boolean,
           computed: 'saveAction(item.isNew)'
         },
+        // date picker crashes on empty dates
+        // this is the workaround
         itemDate: {
           type: Date,
           value: function() {
@@ -132,6 +154,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
         }
       },
+
+      // helper methods
+      isValid: function(title) {
+        return !!(title && title.length > 0);
+      },
       formatDate: function(date, format) {
         if (!date) {
           return undefined;
@@ -141,6 +168,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       saveAction: function(isNew) {
         return !!isNew ? 'Create' : 'Save';
       },
+
+      // actions
       edit: function() {
         this.editing = true;
       },
@@ -151,9 +180,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.editing = false;
         this.fire('save', this.item);
       },
-      isValid: function(title) {
-        return !!(title && title.length > 0);
-      },
+
+      // date picker dialog callbacks
       dismissDialog: function(event, dialogResult) {
         if (dialogResult.confirmed) {
           this.set('item.date', this.itemDate);

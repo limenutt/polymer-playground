@@ -5,7 +5,10 @@
     "src/my-view1.html",
     "src/my-view2.html",
     "src/my-view3.html",
-    "src/my-view404.html"
+    "src/my-view404.html",
+    "src/my-reminders.html",
+    "src/reminder-item.html",
+    "src/wrappers/datejs.html"
   ],
   "sourceGlobs": [
     "src/**/*",
@@ -15,5 +18,8 @@
   "includeDependencies": [
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js"
-  ]
+  ],
+   "lint": {
+    "rules": ["polymer-1"]
+  }
 }

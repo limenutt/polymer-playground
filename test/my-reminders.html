@@ -1,0 +1,171 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>reminder</title>
+
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../bower_components/web-component-tester/browser.js"></script>
+
+    <!-- Import the element to test -->
+    <link rel="import" href="../src/my-reminders.html">
+  </head>
+  <body>
+    <test-fixture id="BasicView">
+      <template>
+        <reminders-section nostorage></reminders-section>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('reminders-section unit', function() {
+        var element;
+        setup(function() {
+          element = fixture('BasicView');
+        });
+        test('should render default reminders if items are not specified', function(done) {
+          flush(function() {
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(reminders.length).to.be.equal(3);
+            done();
+          });
+        });
+        test('should render a reminder for each item if items are specified', function(done) {
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          flush(function() {
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(element.items.length).to.be.equal(reminders.length);
+            done();
+          });
+        });
+        test('it should have new item form if there are items', function(done) {
+          flush(function() {
+            var reminders = Polymer.dom(element.root).querySelectorAll('#newReminder')
+            expect(reminders.length).to.be.equal(1);
+            done();
+          });
+        });
+        test('it should have new item form if there are no items', function(done) {
+          element.items = [];
+          flush(function() {
+            var reminders = Polymer.dom(element.root).querySelectorAll('#newReminder')
+            expect(reminders.length).to.be.equal(1);
+            done();
+          });
+        });
+        test('adding the new item should add a new reminder', function(done) {
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          var initialLength = element.items.length;
+          var newItem = { title: 'new', date: new Date() };
+          element.itemSaved({ detail: newItem });
+          flush(function() {
+            var newReminder = Polymer.dom(element.root).querySelectorAll('#newReminder')[0];
+            expect(newReminder).to.be.ok;
+            expect(newReminder.item).to.be.ok;
+            var items = element.items;
+            expect(element.items.length).to.be.equal(initialLength + 1);
+            var lastItem = items[items.length - 1];
+            expect(lastItem.title).to.be.equal('new');
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(reminders.length).to.be.equal(initialLength + 1);
+            var lastReminder = reminders[reminders.length - 1];
+            expect(lastReminder.item).to.be.equal(lastItem);
+            done();
+          });
+        });
+        test('saving existing item should not add new reminders', function(done) {
+          var element = fixture('BasicView');
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          var initialLength = element.items.length;
+          element.itemSaved({ detail: element.items[1] });
+          flush(function() {
+            var newReminder = Polymer.dom(element.root).querySelectorAll('#newReminder')[0];
+            expect(newReminder).to.be.ok;
+            expect(newReminder.item).to.be.ok;
+            var items = element.items;
+            var lastItem = items[items.length - 1];
+            expect(element.items.length).to.be.equal(initialLength);
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(reminders.length).to.be.equal(initialLength);
+            var lastReminder = reminders[reminders.length - 1];
+            expect(lastReminder.item).to.be.equal(lastItem);
+            done();
+          });
+        });
+        test('removing existing item should remove the reminder', function(done) {
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          var initialLength = element.items.length;
+          element.itemRemoved({ detail: element.items[1] });
+          flush(function() {
+            var newReminder = Polymer.dom(element.root).querySelectorAll('#newReminder')[0];
+            expect(newReminder).to.be.ok;
+            expect(newReminder.item).to.be.ok;
+            var items = element.items;
+            var lastItem = items[items.length - 1];
+            expect(element.items.length).to.be.equal(initialLength - 1);
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(reminders.length).to.be.equal(initialLength - 1);
+            var lastReminder = reminders[reminders.length - 1];
+            expect(lastReminder.item).to.be.equal(lastItem);
+            done();
+          });
+        });
+      });
+      suite('reminders-section e2e', function() {
+        var element;
+        setup(function() {
+          element = fixture('BasicView');
+        });
+        test('saving the new reminder form should add a new item and reminder', function(done) {
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          var initialLength = element.items.length;
+          var newItem = Polymer.dom(element.root).querySelectorAll('#newReminder')[0];
+          newItem.item = { title: 'new', date: new Date() };
+          newItem.save();
+          flush(function() {
+            var items = element.items;
+            expect(element.items.length).to.be.equal(initialLength + 1);
+            var lastItem = items[items.length - 1];
+            expect(lastItem.title).to.be.equal('new');
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            expect(reminders.length).to.be.equal(initialLength + 1);
+            var lastReminder = reminders[reminders.length - 1];
+            expect(lastReminder.item).to.be.equal(lastItem);
+            done();
+          });
+        });
+        test('removing a reminder should remove it from items', function(done) {
+          element.items = [{ title: 'a' }, { title: 'b' }];
+          var initialLength = element.items.length;
+          flush(function() {
+            var reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+            reminders[0].remove();
+            flush(function() {
+              var items = element.items;
+              expect(element.items.length).to.be.equal(initialLength - 1);
+              var lastItem = items[items.length - 1];
+              expect(lastItem.title).to.be.equal('b');
+              reminders = Polymer.dom(element.root).querySelectorAll('#r-item')
+              expect(reminders.length).to.be.equal(initialLength - 1);
+              var lastReminder = reminders[reminders.length - 1];
+              expect(lastReminder.item).to.be.equal(lastItem);
+              done();
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

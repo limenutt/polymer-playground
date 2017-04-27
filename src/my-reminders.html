@@ -14,33 +14,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="./reminder-item.html">
 
+<!--
 
+Reminders page component, handles reminders collection
+
+Attributes:
+ - nostorage: Boolean, if set, turns of reminders localstorage sync
+
+-->
 <dom-module id="reminders-section">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
     </style>
-    <iron-localstorage 
-      name="my-app-reminders-storage"
-      value="{{items}}"
-      id="storage"
-      on-iron-localstorage-load-empty="_initializeDefaultReminders"
-      on-iron-localstorage-load="_loadedFromStorage"
-      auto-save-disabled>
-    </iron-localstorage>
+
+    <template is="dom-if" if="[[!nostorage]]">
+      <iron-localstorage
+        name="my-app-reminders-storage"
+        value="{{items}}"
+        id="storage"
+        on-iron-localstorage-load-empty="_initializeDefaultReminders"
+        on-iron-localstorage-load="_loadedFromStorage"
+        auto-save-disabled>
+        <!-- we disable auto save to avoid saving items during editing -->
+      </iron-localstorage>
+    </template>
+
     <div class="card">
       <h1>Reminders</h1>
       <reminder-item id="newReminder" item={{newItem}} on-save="itemSaved" editing></reminder-item>
       <div class="layout vertical">
+
         <template is="dom-repeat" items="{{items}}">
           <reminder-item id="r-item" item={{item}} on-remove="itemRemoved" on-save="itemSaved"></reminder-item>
         </template>
+
       </div>
     </div>
   </template>
   <script>
+    // default reminder items for demo purposes
+    var defaultItems = [
+      {
+        title: 'Create your first Reminder',
+        description: 'Start typing a new thing to remember in the input above',
+        date: new Date()
+      },
+      {
+        title: 'Update this reminder',
+        description: 'Press the pencil icon to the left to edit',
+        date: new Date().add(5).minutes()
+      },
+      {
+        title: 'Delete this reminder',
+        description: 'Press the bin icon to the left to delete',
+        date: new Date().add(8).minutes()
+      }
+    ];
     Polymer({
       is: 'reminders-section',
       properties: {
+        // item to use in reminder create form
         newItem: { 
           type: Object,
           value: {
@@ -48,10 +81,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             isNew: true
           }
         },
+        // reminder items info
         items: {
           type: Array
+        },
+        // flag whether to use local storage
+        nostorage: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
         }
       },
+      attached: function() {
+        if (!this.items) {
+          this._initializeDefaultReminders();
+        }
+      },
+      // event handlers
+
+      // reminder-item[remove]
       itemRemoved: function(e) {
         var item = e.detail;
         var idx = this.items.indexOf(item);
@@ -64,6 +112,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
         this._saveToStorage();
       },
+      // reminder-item[save]
       itemSaved: function(e) {
         var item = e.detail;
         var idx = this.items.indexOf(item);
@@ -84,36 +133,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
         this._saveToStorage();
       },
+
+      // local storage - related methods
       _initializeDefaultReminders: function() {
-        this.items = [
-          {
-            title: 'Create your first Reminder',
-            description: 'Start typing a new thing to remember in the input above',
-            date: new Date()
-          },
-          {
-            title: 'Update this reminder',
-            description: 'Press the pencil icon to the left to edit',
-            date: new Date().add(5).minutes()
-          },
-          {
-            title: 'Delete this reminder',
-            description: 'Press the bin icon to the left to delete',
-            date: new Date().add(8).minutes()
-          }
-        ]
+        this.items = defaultItems.slice();
       },
       _loadedFromStorage: function() {
+        if (this.nostorage) {
+          return;
+        }
         if (this.items) {
           this.items.forEach(function(item) {
             if (item.date && typeof item.date === 'string') {
               item.date = Date.parse(item.date)
             }
           });
+        } else {
+          this._initializeDefaultReminders();
         }
       },
       _saveToStorage: function() {
-        this.$.storage.save();
+        if (this.nostorage) {
+          return;
+        }
+        Polymer.dom(this.root).querySelector('#storage').save();
       }
     });
   </script>

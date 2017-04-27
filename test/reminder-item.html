@@ -1,0 +1,282 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>reminder</title>
+
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../bower_components/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../src/wrappers/datejs.html">
+    <!-- Import the element to test -->
+    <link rel="import" href="../src/reminder-item.html">
+  </head>
+  <body>
+    <test-fixture id="NonEditing">
+      <template>
+        <reminder-item></reminder-item>
+      </template>
+    </test-fixture>
+    <test-fixture id="Editing">
+      <template>
+        <reminder-item editing></reminder-item>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('reminder non-editing', function() {
+        var element;
+        setup(function() {
+          element = fixture('NonEditing');
+        });
+        test('it should have only view form and actions if item is not new', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var actions = Polymer.dom(element.root).querySelector('#actions-view');
+            expect(actions).to.be.ok;
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            expect(viewForm).to.be.ok;
+            var editForm = Polymer.dom(element.root).querySelector('#edit-form');
+            expect(editForm).not.to.be.ok;
+            done();
+          });
+        });
+        test('it should not have actions if item is new', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date(), isNew: true };
+          element.item = item;
+          flush(function() {
+            var actions = Polymer.dom(element.root).querySelector('#actions-view');
+            expect(actions).not.to.be.ok;
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            expect(viewForm).to.be.ok;
+            done();
+          });
+        });
+        test('it should display title, description and date according to the item', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            var titleElement = Polymer.dom(element.root).querySelector('#view-form-title');
+            var dateElement = Polymer.dom(element.root).querySelector('#view-form-date');
+            var descriptionElement = Polymer.dom(element.root).querySelector('#view-form-description');
+            expect(titleElement).to.be.ok;
+            expect(titleElement.textContent).to.be.equal(item.title);
+            expect(dateElement).to.be.ok;
+            expect(dateElement.textContent).to.be.equal(item.date.toString('dd.MM.yyyy'));
+            expect(descriptionElement).to.be.ok;
+            expect(descriptionElement.textContent).to.be.equal(item.description);
+            done();
+          });
+        });
+        test('it should render without title', function(done) {
+          var item = { description: 'b', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            var titleElement = Polymer.dom(element.root).querySelector('#view-form-title');
+            var dateElement = Polymer.dom(element.root).querySelector('#view-form-date');
+            var descriptionElement = Polymer.dom(element.root).querySelector('#view-form-description');
+            expect(titleElement).to.be.ok;
+            expect(dateElement).to.be.ok;
+            expect(dateElement.textContent).to.be.equal(item.date.toString('dd.MM.yyyy'));
+            expect(descriptionElement).to.be.ok;
+            expect(descriptionElement.textContent).to.be.equal(item.description);
+            done();
+          });
+        });
+        test('it should render without description', function(done) {
+          var item = { title: 'a', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            var titleElement = Polymer.dom(element.root).querySelector('#view-form-title');
+            var dateElement = Polymer.dom(element.root).querySelector('#view-form-date');
+            var descriptionElement = Polymer.dom(element.root).querySelector('#view-form-description');
+            expect(titleElement).to.be.ok;
+            expect(titleElement.textContent).to.be.equal(item.title);
+            expect(dateElement).to.be.ok;
+            expect(dateElement.textContent).to.be.equal(item.date.toString('dd.MM.yyyy'));
+            expect(descriptionElement).to.be.ok;
+            done();
+          });
+        });
+        test('it should render without date', function(done) {
+          var item = { title: 'a', description: 'b' };
+          element.item = item;
+          flush(function() {
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            var titleElement = Polymer.dom(element.root).querySelector('#view-form-title');
+            var dateElement = Polymer.dom(element.root).querySelector('#view-form-date');
+            var descriptionElement = Polymer.dom(element.root).querySelector('#view-form-description');
+            expect(titleElement).to.be.ok;
+            expect(titleElement.textContent).to.be.equal(item.title);
+            expect(dateElement).to.be.ok;
+            expect(descriptionElement).to.be.ok;
+            expect(descriptionElement.textContent).to.be.equal(item.description);
+            done();
+          });
+        });
+      });
+      suite('reminder edit form', function() {
+        var element;
+        setup(function() {
+          element = fixture('Editing');
+        });
+        test('it should display edit form and actions if item is not new', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var actions = Polymer.dom(element.root).querySelector('#actions-view');
+            expect(actions).to.be.ok;
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            expect(viewForm).not.to.be.ok;
+            var editForm = Polymer.dom(element.root).querySelector('#edit-form');
+            expect(editForm).to.be.ok;
+            done();
+          });
+        });
+        test('it should not display actions if item is new', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date(), isNew: true };
+          element.item = item;
+          flush(function() {
+            var actions = Polymer.dom(element.root).querySelector('#actions-view');
+            expect(actions).not.to.be.ok;
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            expect(viewForm).not.to.be.ok;
+            var editForm = Polymer.dom(element.root).querySelector('#edit-form');
+            expect(editForm).to.be.ok;
+            done();
+          });
+        });
+        test('it should not display actions if item is new', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date(), isNew: true };
+          element.item = item;
+          flush(function() {
+            var actions = Polymer.dom(element.root).querySelector('#actions-view');
+            expect(actions).not.to.be.ok;
+            var viewForm = Polymer.dom(element.root).querySelector('#view-form');
+            expect(viewForm).not.to.be.ok;
+            var editForm = Polymer.dom(element.root).querySelector('#edit-form');
+            expect(editForm).to.be.ok;
+            done();
+          });
+        });
+        test('form action button should have title [Create] for new item', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date(), isNew: true };
+          element.item = item;
+          flush(function() {
+            var actionButton = Polymer.dom(element.root).querySelector('#item-save-button');
+            expect(actionButton).to.be.ok;
+            expect(actionButton.textContent).to.be.equal('Create')
+            done();
+          });
+        });
+        test('form action button should have title [Save] for existing item', function(done) {
+          var item = { title: 'a', description: 'b', date: new Date() };
+          element.item = item;
+          flush(function() {
+            var actionButton = Polymer.dom(element.root).querySelector('#item-save-button');
+            expect(actionButton).to.be.ok;
+            expect(actionButton.textContent).to.be.equal('Save');
+            done();
+          });
+        });
+      });
+      suite('reminder edit form validation', function() {
+        var element;
+        setup(function() {
+          element = fixture('Editing');
+        });
+        test('reminder should not be valid if title is empty', function() {
+          var item = { title: '', description: 'b', date: new Date()};
+          element.item = item;
+          expect(element.itemIsValid).to.be.equal(false);
+        });
+        test('reminder should be valid if title is not empty', function() {
+          var item = { title: 'a'};
+          element.item = item;
+          expect(element.itemIsValid).to.be.equal(true);
+        });
+      });
+      suite('reminder actions', function(done) {
+        test('reminder should transition to editing mode after tapping on edit button', function(done) {
+          var element = fixture('NonEditing');
+          var item = { title: 'a', description: 'b', date: new Date()};
+          element.item = item;
+          flush(function() {
+            expect(element.editing).to.equal(false);
+            var editButton = Polymer.dom(element.root).querySelector('#action-edit');
+            expect(editButton).to.be.ok;
+            editButton.click();
+            flush(function() {
+              expect(element.editing).to.equal(true);
+              done();  
+            });
+          });
+        });
+        test('reminder should emit [remove] event after tapping on delete button in view mode', function (done) {
+          var element = fixture('Editing');
+          var item = { title: 'a', description: 'b', date: new Date()};
+          element.item = item;
+          flush(function() {
+            var removeButton = Polymer.dom(element.root).querySelector('#action-remove');
+            expect(removeButton).to.be.ok;
+            var listener = function(event) {
+              element.removeEventListener('remove', listener);
+              expect(event.detail).to.be.equal(item);
+              done();
+            };
+            element.addEventListener('remove', listener);
+            removeButton.click();
+          });
+        });
+        test('reminder should emit [remove] event after tapping on delete button in edit mode', function (done) {
+          var element = fixture('NonEditing');
+          var item = { title: 'a', description: 'b', date: new Date()};
+          element.item = item;
+          flush(function() {
+            var removeButton = Polymer.dom(element.root).querySelector('#action-remove');
+            expect(removeButton).to.be.ok;
+            var listener = function(event) {
+              element.removeEventListener('remove', listener);
+              expect(event.detail).to.be.equal(item);
+              done();
+            };
+            element.addEventListener('remove', listener);
+            removeButton.click();
+          });
+        });
+        test('reminder should emit [save] event after tapping on save button', function (done) {
+          var element = fixture('Editing');
+          var item = { title: 'a', description: 'b', date: new Date()};
+          element.item = item;
+          flush(function() {
+            var actionButton = Polymer.dom(element.root).querySelector('#item-save-button');
+            expect(actionButton).to.be.ok;
+            var listener = function(event) {
+              element.removeEventListener('save', listener);
+              expect(event.detail).to.be.equal(item);
+              done();
+            };
+            element.addEventListener('save', listener);
+            actionButton.click();
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
