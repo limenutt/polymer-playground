@@ -5,20 +5,15 @@
     "src/my-view1.html",
     "src/my-view2.html",
     "src/my-view3.html",
-    "src/my-view404.html",
-    "src/my-reminders.html",
-    "src/reminder.html"
+    "src/my-view404.html"
   ],
-  "sources": [
+  "sourceGlobs": [
     "src/**/*",
     "images/**/*",
     "bower.json"
   ],
-  "extraDependencies": [
+  "includeDependencies": [
     "manifest.json",
-    "bower_components/webcomponentsjs/*.js"
-  ],
-  "lint": {
-    "rules": ["polymer-2"]
-  }
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
+  ]
 }

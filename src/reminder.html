@@ -8,16 +8,28 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-date-picker/paper-date-picker.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="my-icons.html">
 <link rel="import" href="./wrappers/datejs.html">
 <link rel="import" href="./shared-styles.html">
-
+<!-- this.notifySplices('items', [
+  { index: 1, removed: [{name: 'Todd'}], addedCount: 1, obect: this.items, type: 'splice' },
+  { index: 3, removed: [], addedCount: 1, object: this.items, type: 'splice'}
+]); -->
 
 <dom-module id="reminder-item">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
+      .h[hidden] {
+          display:none;
+      }
       .view {
         padding: 10px;
       }
@@ -41,43 +53,81 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <div class="container layout horizontal">
-      <div class="actions layout vertical">
-        <paper-icon-button icon="my-icons:mode-edit"></paper-icon-button>
-        <paper-icon-button icon="my-icons:delete"></paper-icon-button>
-      </div>
-      <div class="view layout vertical" hidden$=[[isEditing]]>
+      <template is="dom-if" if="[[!item.isNew]]">
+        <div class="actions layout vertical h" hidden$=[[editing]]>
+          <paper-icon-button icon="my-icons:mode-edit" on-tap="edit"></paper-icon-button>
+          <paper-icon-button icon="my-icons:delete" on-tap="remove"></paper-icon-button>
+        </div>
+      </template>
+      <div class="view layout vertical h" hidden$=[[editing]]>
         <span class="title">{{item.title}}</span>
         <span class="date">{{dateString}}</span>
         <span class="description">{{item.description}}</span>
+      </div>
+      <div class="view layout vertical flex h" hidden$=[[!editing]]>
+        <paper-input-container>
+          <label>Remind me</label>
+          <input is="iron-input" maxlength="140" bind-value={{item.title}}>
+          <paper-input-char-counter></paper-input-char-counter>
+        </paper-input-container>
+        <paper-input label="when" on-tap="openDialog" value="[[dateString]]" readOnly>
+          <iron-icon icon="my-icons:date" prefix></iron-icon>
+        </paper-input>
+        <paper-dialog
+          entry-animation="scale-up-animation"
+          exit-animation="fade-out-animation"
+          id="dialog" class="paper-date-picker-dialog"
+          on-iron-overlay-closed="dismissDialog">
+          <paper-date-picker id="picker" date="{{item.date}}"></paper-date-picker>
+          <div class="buttons">
+            <paper-button dialog-dismiss>Cancel</paper-button>
+            <paper-button dialog-confirm>OK</paper-button>
+          </div>
+        </paper-dialog>
+        <paper-textarea label="Additional info" value={{item.description}}></paper-textarea>
+        <paper-button raised on-tap="save">save</paper-button>
       </div>
     </div>
   </template>
 
   <script>
-    class ReminderItem extends Polymer.Element {
-      static get is() { return 'reminder-item'; }
-      static get properties() {
-        return {
-          isEditing: Boolean,
-          item: {
-            title: String,
-            description: String,
-            date: Date
-          },
-          dateString: {
-            type: String,
-            computed: 'formatDate(item.date, "dd.MM.yyyy@HH:mm")',
-          }
+    Polymer({
+      is: 'reminder-item',
+      properties: {
+        editing: { 
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+        item: {
+          title: String,
+          description: String,
+          date: Date
+        },
+        dateString: {
+          type: String,
+          computed: 'formatDate(item.date, "dd.MM.yyyy@HH:mm")',
         }
-      }
+      },
       formatDate(date, format) {
         if (!date) {
           return undefined;
         }
         return date.toString(format)
+      },
+      edit: function() {
+        this.editing = true;
+      },
+      remove: function() {
+        this.fire('remove', this.item);
+      },
+      save: function() {
+        this.editing = false;
+        this.fire('save', this.item);
+      },
+      openDialog: function() {
+        this.$.dialog.open();
       }
-    }
-
-    window.customElements.define(ReminderItem.is, ReminderItem);
+    });
   </script>
 </dom-module>
