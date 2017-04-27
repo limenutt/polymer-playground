@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="./wrappers/datejs.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="./reminder.html">
+<link rel="import" href="./reminder-item.html">
 
 
 <dom-module id="reminders-section">
@@ -29,10 +29,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </iron-localstorage>
     <div class="card">
       <h1>Reminders</h1>
-      <reminder-item item={{newItem}} on-save="itemSaved" editing></reminder-item>
+      <reminder-item id="newReminder" item={{newItem}} on-save="itemSaved" editing></reminder-item>
       <div class="layout vertical">
         <template is="dom-repeat" items="{{items}}">
-          <reminder-item item={{item}} on-remove="itemRemoved" on-save="itemSaved"></reminder-item>
+          <reminder-item id="r-item" item={{item}} on-remove="itemRemoved" on-save="itemSaved"></reminder-item>
         </template>
       </div>
     </div>
@@ -73,10 +73,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               date: new Date(),
               isNew: true
             };
+            this.$.newReminder.editing = true;
           }
           delete item.isNew;
           this.push('items', item);
-          this.items.push(item);
+          // this.items.push(item);
           // this.notifySplices('items', [
           //   { index: this.items.length - 1, removed: [], addedCount: 1, object: this.items, type: 'splice' }
           // ]);

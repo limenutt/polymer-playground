@@ -54,39 +54,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
     <div class="container layout horizontal">
       <template is="dom-if" if="[[!item.isNew]]">
-        <div class="actions layout vertical h" hidden$=[[editing]]>
-          <paper-icon-button icon="my-icons:mode-edit" on-tap="edit"></paper-icon-button>
+        <div class="actions layout vertical">
+          <template is="dom-if" if="[[!editing]]">
+            <paper-icon-button icon="my-icons:mode-edit" on-tap="edit"></paper-icon-button>
+          </template>
           <paper-icon-button icon="my-icons:delete" on-tap="remove"></paper-icon-button>
         </div>
       </template>
-      <div class="view layout vertical h" hidden$=[[editing]]>
-        <span class="title">{{item.title}}</span>
-        <span class="date">{{dateString}}</span>
-        <span class="description">{{item.description}}</span>
-      </div>
-      <div class="view layout vertical flex h" hidden$=[[!editing]]>
-        <paper-input-container>
-          <label>Remind me</label>
-          <input is="iron-input" maxlength="140" bind-value={{item.title}}>
-          <paper-input-char-counter></paper-input-char-counter>
-        </paper-input-container>
-        <paper-input label="when" on-tap="openDialog" value="[[dateString]]" readOnly>
-          <iron-icon icon="my-icons:date" prefix></iron-icon>
-        </paper-input>
-        <paper-dialog
-          entry-animation="scale-up-animation"
-          exit-animation="fade-out-animation"
-          id="dialog" class="paper-date-picker-dialog"
-          on-iron-overlay-closed="dismissDialog">
-          <paper-date-picker id="picker" date="{{item.date}}"></paper-date-picker>
-          <div class="buttons">
-            <paper-button dialog-dismiss>Cancel</paper-button>
-            <paper-button dialog-confirm>OK</paper-button>
-          </div>
-        </paper-dialog>
-        <paper-textarea label="Additional info" value={{item.description}}></paper-textarea>
-        <paper-button raised on-tap="save">save</paper-button>
-      </div>
+      <template is="dom-if" if="[[!editing]]">
+        <div class="view layout vertical" id="view-form">
+          <span class="title">{{item.title}}</span>
+          <span class="date">{{dateString}}</span>
+          <span class="description">{{item.description}}</span>
+        </div>
+      </template>
+      <template is="dom-if" if="[[editing]]">
+        <div class="view layout vertical flex" id="edit-form">
+          <paper-input-container id="title">
+            <label>Remind me</label>
+            <input is="iron-input" maxlength="140" minlength="1" bind-value={{item.title}}>
+            <paper-input-error>Please set the reminder title but no more than 140 chars</paper-input-error>
+            <paper-input-char-counter></paper-input-char-counter>
+          </paper-input-container>
+          <paper-input label="when" on-tap="openDialog" value="[[dateString]]" readOnly>
+            <iron-icon icon="my-icons:date" prefix></iron-icon>
+          </paper-input>
+          <paper-dialog
+            id="dialog" class="paper-date-picker-dialog"
+            on-iron-overlay-closed="dismissDialog"
+            >
+            <paper-date-picker id="picker" date="{{itemDate}}"></paper-date-picker>
+            <div class="buttons">
+              <paper-button dialog-dismiss>Cancel</paper-button>
+              <paper-button dialog-confirm>OK</paper-button>
+            </div>
+          </paper-dialog>
+          <paper-textarea label="Additional info" value={{item.description}}></paper-textarea>
+          <paper-button raised on-tap="save" disabled$="[[!itemIsValid]]" id="item-save-button">[[itemSaveAction]]</paper-button>
+        </div>
+      </template>
     </div>
   </template>
 
@@ -106,14 +112,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
         dateString: {
           type: String,
-          computed: 'formatDate(item.date, "dd.MM.yyyy@HH:mm")',
+          computed: 'formatDate(item.date, "dd.MM.yyyy")',
+        },
+        itemIsValid: {
+          type: Boolean,
+          computed: 'isValid(item.title)'
+        },
+        itemSaveAction: {
+          type: Boolean,
+          computed: 'saveAction(item.isNew)'
+        },
+        itemDate: {
+          type: Date,
+          value: function() {
+            if (this.item && this.item.date) {
+              return this.item.date;
+            }
+            return new Date();
+          }
         }
       },
-      formatDate(date, format) {
+      formatDate: function(date, format) {
         if (!date) {
           return undefined;
         }
         return date.toString(format)
+      },
+      saveAction: function(isNew) {
+        return !!isNew ? 'Create' : 'Save';
       },
       edit: function() {
         this.editing = true;
@@ -124,6 +150,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       save: function() {
         this.editing = false;
         this.fire('save', this.item);
+      },
+      isValid: function(title) {
+        return !!(title && title.length > 0);
+      },
+      dismissDialog: function(event, dialogResult) {
+        if (dialogResult.confirmed) {
+          this.set('item.date', this.itemDate);
+        }
       },
       openDialog: function() {
         this.$.dialog.open();
